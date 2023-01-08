@@ -2,30 +2,11 @@ import os
 import sys
 import pygame
 
-
-class Camera:
-    # зададим начальный сдвиг камеры
-    def __init__(self):
-        self.dx = 0
-        self.dy = 0
-
-    # сдвинуть объект obj на смещение камеры
-    def apply(self, obj):
-        obj.rect.x += self.dx
-        obj.rect.y += self.dy
-
-    # позиционировать камеру на объекте target
-    def update(self, target):
-        self.dx = -(target.rect.x + target.rect.w // 2 - width // 2)
-        self.dy = -(target.rect.y + target.rect.h // 2 - height // 2)
+WIDTH, HEIGHT = 1250, 500
 
 
 class Tile(pygame.sprite.Sprite):
-    spisok = [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-              [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-              [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-              [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-              [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]
+    spisok = [[0 for j in range(WIDTH // 50)] for i in range(HEIGHT // 50)]
 
     def __init__(self, tile_type, pos_x, pos_y):
         super().__init__(tiles_group, all_sprites)
@@ -35,7 +16,6 @@ class Tile(pygame.sprite.Sprite):
         self.rect = self.image.get_rect().move(
             tile_width * pos_x, tile_height * pos_y)
         Tile.spisok[pos_y][pos_x] = [pos_y, pos_x]
-        print(Tile.spisok)
 
     def update(self):
         pos_x = Tile.spisok[self.y][self.x][1]
@@ -51,23 +31,29 @@ class Player(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.x = tile_width * pos_x + 15
         self.rect.y = tile_height * pos_y + 5
+        self.nachalo = tile_height * pos_y + 5
 
     def update(self):
         for i in range(len(Tile.spisok)):
-            for j in range(len(Tile.spisok[i])):
-                coords_before = Tile.spisok[i][j]
-                if j < 11:
-                    coords_now = Tile.spisok[i][j + 1]
-                if j == 0:
-                    for_last = coords_before
-                    Tile.spisok[i][j] = coords_now
-                elif j == 11:
-                    Tile.spisok[i][j] = for_last
-                else:
-                    Tile.spisok[i][j] = coords_now
+            Tile.spisok[i] = Tile.spisok[i][-1:] + Tile.spisok[i][:-1]
 
     def jump(self):
-        pass
+        if self.rect.y == self.nachalo:
+            self.FPS = 15
+            self.rect.y -= 100
+            player.update()
+            tiles_group.update()
+            screen.fill((0, 0, 0))
+            tiles_group.draw(screen)
+            player_group.draw(screen)
+            clock.tick(self.FPS)
+            self.rect.y += 100
+            player.update()
+            tiles_group.update()
+            screen.fill((0, 0, 0))
+            tiles_group.draw(screen)
+            player_group.draw(screen)
+            clock.tick(self.FPS)
 
 
 def load_image(name, colorkey=None):
@@ -79,14 +65,22 @@ def load_image(name, colorkey=None):
     return image
 
 
+def load_level(filename):
+    filename = "data/" + filename
+    with open(filename, 'r') as mapFile:
+        level_map = [line.strip() for line in mapFile]
+    max_width = max(map(len, level_map))
+    return list(map(lambda x: x.ljust(max_width, '.'), level_map))
+
+
 def generate(map):
     for y in range(len(map)):
         for x in range(len(map[y])):
-            if map[y][x] == 'empty':
+            if map[y][x] == '.':
                 Tile('empty', x, y)
-            elif map[y][x] == 'wall':
+            elif map[y][x] == '#':
                 Tile('wall', x, y)
-            elif map[y][x] == 'player':
+            elif map[y][x] == '@':
                 Tile('empty', x, y)
                 new_player = Player(x, y)
     return new_player
@@ -94,29 +88,18 @@ def generate(map):
 
 if __name__ == '__main__':
     pygame.init()
-    size = width, height = 600, 500
+    size = WIDTH, HEIGHT = 1000, 500
     screen = pygame.display.set_mode(size)
-    FPS = 30
+    FPS = 15
     clock = pygame.time.Clock()
-    camera = Camera()
     tile_images = {'wall': load_image('box.png'), 'empty': load_image('grass.png')}
     player_image = load_image('mar.png')
     tile_width = tile_height = 50
     all_sprites = pygame.sprite.Group()
     tiles_group = pygame.sprite.Group()
     player_group = pygame.sprite.Group()
-    map = [['empty', 'empty', 'empty', 'empty', 'empty', 'empty', 'empty', 'empty', 'empty', 'empty', 'empty', 'empty'],
-           ['empty', 'empty', 'empty', 'empty', 'empty', 'empty', 'empty', 'empty', 'empty', 'empty', 'empty', 'empty'],
-           ['empty', 'empty', 'empty', 'empty', 'empty', 'empty', 'empty', 'empty', 'empty', 'empty', 'empty', 'empty'],
-           ['empty', 'empty', 'empty', 'empty', 'empty', 'empty', 'empty', 'empty', 'empty', 'empty', 'empty', 'empty'],
-           ['empty', 'empty', 'player', 'empty', 'empty', 'empty', 'empty', 'empty', 'empty', 'empty', 'empty', 'empty'],
-           ['wall', 'wall', 'wall', 'wall', 'wall', 'wall', 'wall', 'wall', 'wall', 'wall', 'wall', 'wall'],
-           ['wall', 'wall', 'wall', 'wall', 'wall', 'wall', 'wall', 'wall', 'wall', 'wall', 'wall', 'wall'],
-           ['wall', 'wall', 'wall', 'wall', 'wall', 'wall', 'wall', 'wall', 'wall', 'wall', 'wall', 'wall'],
-           ['wall', 'wall', 'wall', 'wall', 'wall', 'wall', 'wall', 'wall', 'wall', 'wall', 'wall', 'wall'],
-           ['wall', 'wall', 'wall', 'wall', 'wall', 'wall', 'wall', 'wall', 'wall', 'wall', 'wall', 'wall']]
     maps_size = (10, 12)
-    player = generate(map)
+    player = generate(load_level('map.txt'))
     running = True
     while running:
         for event in pygame.event.get():
@@ -125,11 +108,10 @@ if __name__ == '__main__':
             if event.type == pygame.KEYDOWN:
                 if pygame.key.get_pressed()[pygame.K_SPACE]:
                     player.jump()
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                player.jump()
         player.update()
         tiles_group.update()
-        camera.update(player)
-        for sprite in all_sprites:
-            camera.apply(sprite)
         screen.fill((0, 0, 0))
         tiles_group.draw(screen)
         player_group.draw(screen)
