@@ -29,7 +29,7 @@ class Player(pygame.sprite.Sprite):
         super().__init__(player_group, all_sprites)
         self.image = player_image
         self.rect = self.image.get_rect()
-        self.cords = [pos_y, pos_x] #сначала у, потом x
+        self.cords = [pos_y, pos_x]
         self.nachalo = self.cords[:]
         self.rect.x = tile_width * pos_x
         self.rect.y = tile_height * pos_y
@@ -48,8 +48,8 @@ class Player(pygame.sprite.Sprite):
 
     def fall(self):
         if self.cords[0] != 4:
-           self.cords = [self.cords[0] + 1, self.cords[1]]
-           self.rect = self.image.get_rect().move(tile_width * self.cords[1], tile_height * self.cords[0])
+            self.cords = [self.cords[0] + 1, self.cords[1]]
+            self.rect = self.image.get_rect().move(tile_width * self.cords[1], tile_height * self.cords[0])
 
 
 def load_level(filename):
@@ -116,7 +116,7 @@ def start_screen():
                 terminate()
             elif event.type == pygame.KEYDOWN or \
                     event.type == pygame.MOUSEBUTTONDOWN:
-                return  # начинаем игру
+                return
         pygame.display.flip()
         clock.tick(50)
 
