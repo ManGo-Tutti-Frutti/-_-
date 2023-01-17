@@ -1,5 +1,7 @@
 import os
 import sys
+from random import choice
+
 import pygame
 
 WIDTH, HEIGHT = 1200, 500
@@ -118,12 +120,11 @@ def start_screen():
     fon = pygame.transform.scale(load_image('fon.png'), (1200, 500))
     screen.blit(fon, (0, 0))
     font = pygame.font.Font(None, 30)
-    text_coord = 50
-    string_rendered = font.render(intro_text, 1, pygame.Color('blue'))
+    string_rendered = font.render(intro_text, 1, pygame.Color(0, 118, 118))
     intro_rect = string_rendered.get_rect()
-    intro_rect.top = text_coord
+    intro_rect.top = 50
     intro_rect.x = 1025
-    pygame.draw.rect(screen, (0, 0, 255), (1015, 40, 160, 40), 1)
+    pygame.draw.rect(screen, (0, 118, 118), (1015, 40, 160, 40), 1)
     screen.blit(string_rendered, intro_rect)
     while True:
         for event in pygame.event.get():
@@ -152,6 +153,11 @@ class Game_over(pygame.sprite.Sprite):
             self.rect.x += 15
 
 
+def counted(smg):
+    smg += 1
+    return smg
+
+
 def terminate():
     pygame.quit()
     sys.exit()
@@ -165,12 +171,16 @@ if __name__ == '__main__':
     clock = pygame.time.Clock()
     tile_images = {'wall': load_image('box.png'), 'empty': load_image('empty.png'), 'ice': load_image('ice.png'),
                    'snow': load_image('snow.png')}
+    map_names = ['map.txt', 'map2.txt', 'map3.txt', 'map4.txt', 'map5.txt']
     player_image = load_image('hero.png')
     tile_width = tile_height = 50
     all_sprites = pygame.sprite.Group()
     tiles_group = pygame.sprite.Group()
     player_group = pygame.sprite.Group()
     player = generate(load_level('map.txt'))
+    count = 0
+    v = 0
+    k = 100
     start_screen()
     running = True
     velikieschitovodi = [[3, 9], [4, 9], [4, 10]]
@@ -191,6 +201,16 @@ if __name__ == '__main__':
         screen.fill((0, 0, 0))
         tiles_group.draw(screen)
         player_group.draw(screen)
+        count = counted(count)
+        if count // k > v:
+            FPS += 1
+            k *= 2
+        font = pygame.font.Font(None, 30)
+        string_rendered = font.render(f'Your points: {count}', 1, pygame.Color(0, 118, 118))
+        intro_rect = string_rendered.get_rect()
+        intro_rect.top = 50
+        intro_rect.x = 1000
+        screen.blit(string_rendered, intro_rect)
         clock.tick(FPS)
         pygame.display.flip()
     clock = pygame.time.Clock()
@@ -203,6 +223,13 @@ if __name__ == '__main__':
                 running = False
         all_sprites.update()
         all_sprites.draw(screen)
+        if game_over.rect.x == 0:
+            font = pygame.font.Font(None, 30)
+            string_rendered = font.render(f'Your points: {count}', 1, pygame.Color(0, 118, 118))
+            intro_rect = string_rendered.get_rect()
+            intro_rect.top = 400
+            intro_rect.x = 550
+            screen.blit(string_rendered, intro_rect)
         pygame.display.flip()
         clock.tick(30)
     pygame.quit()
