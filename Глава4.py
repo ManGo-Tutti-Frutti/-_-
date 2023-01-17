@@ -107,16 +107,33 @@ def proverka(velikieschitovodi):
     return running
 
 
+def rule():
+    file_path = r'data/rules.txt'
+    os.system("start " + file_path)
+    return False
+
+
 def start_screen():
+    intro_text = "Правила игры"
     fon = pygame.transform.scale(load_image('fon.png'), (1200, 500))
     screen.blit(fon, (0, 0))
+    font = pygame.font.Font(None, 30)
+    text_coord = 50
+    string_rendered = font.render(intro_text, 1, pygame.Color('blue'))
+    intro_rect = string_rendered.get_rect()
+    intro_rect.top = text_coord
+    intro_rect.x = 1025
+    pygame.draw.rect(screen, (0, 0, 255), (1015, 40, 160, 40), 1)
+    screen.blit(string_rendered, intro_rect)
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 terminate()
-            elif event.type == pygame.KEYDOWN or \
-                    event.type == pygame.MOUSEBUTTONDOWN:
-                return
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                if (event.pos[0] > 1015) and (event.pos[0] < 1175) and (event.pos[1] > 40) and (event.pos[1] < 80):
+                    rule()
+                else:
+                    return
         pygame.display.flip()
         clock.tick(50)
 
