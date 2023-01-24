@@ -1,6 +1,7 @@
 import os
 import sys
 import pygame
+from random import choice
 
 WIDTH, HEIGHT = 1200, 500
 
@@ -86,6 +87,25 @@ def generate(map):
     return new_player
 
 
+def obstacles():
+    velikieschitovodi = []
+    for i in range(len(spisochek)):
+        if "@" in spisochek[i]:
+            sp = [i]
+            for j in range(len(spisochek[i])):
+                if spisochek[i][j] == "&":
+                    sp.append(j)
+                    velikieschitovodi.append(sp)
+                    sp = [i]
+            sp = [i - 1]
+            for j in range(len(spisochek[i - 1])):
+                if spisochek[i - 1][j] == "&":
+                    sp.append(j)
+                    velikieschitovodi.append(sp)
+                    sp = [i - 1]
+    return velikieschitovodi
+
+
 def proverka(velikieschitovodi):
     running = True
     if player.y_up:
@@ -150,24 +170,11 @@ if __name__ == '__main__':
     all_sprites = pygame.sprite.Group()
     tiles_group = pygame.sprite.Group()
     player_group = pygame.sprite.Group()
-    spisochek = load_level('map.txt')
-    velikieschitovodi = []
-    for i in range(len(spisochek)):
-        if "@" in spisochek[i]:
-            sp = [i]
-            for j in range(len(spisochek[i])):
-                if spisochek[i][j] == "&":
-                    sp.append(j)
-                    velikieschitovodi.append(sp)
-                    sp = [i]
-            sp = [i - 1]
-            for j in range(len(spisochek[i - 1])):
-                if spisochek[i - 1][j] == "&":
-                    sp.append(j)
-                    velikieschitovodi.append(sp)
-                    sp = [i - 1]
-    print(velikieschitovodi)
+    map_names = ['map.txt', 'map1.txt', 'map2.txt', 'map3.txt']
+    spisochek = load_level(choice(map_names))
+    velikieschitovodi = obstacles()
     player = generate(spisochek)
+    sound = pygame.mixer.Sound('data\jump.wav')
     start_screen()
     running = True
     while running:
@@ -178,9 +185,11 @@ if __name__ == '__main__':
                 if pygame.key.get_pressed()[pygame.K_SPACE]:
                     if player.cords == player.nachalo:
                         player.y_up = True
+                    sound.play()
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if player.cords == player.nachalo:
                     player.y_up = True
+                    sound.play()
         running = proverka(velikieschitovodi)
         player.update()
         tiles_group.update()
