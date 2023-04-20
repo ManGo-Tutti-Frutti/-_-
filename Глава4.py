@@ -1,6 +1,8 @@
 import os
 import sys
 import pygame
+import subprocess
+import time
 from random import choice
 
 WIDTH, HEIGHT = 1200, 500
@@ -61,7 +63,7 @@ def load_level(filename):
     return list(map(lambda x: x.ljust(max_width, '.'), level_map))
 
 
-def load_image(name, colorkey=None):
+def load_image(name):
     fullname = os.path.join('data', name)
     if not os.path.isfile(fullname):
         print(f"Файл с изображением '{fullname}' не найден")
@@ -109,7 +111,6 @@ def obstacles():
                     sp.append(j)
                     velikieschitovodi.append(sp)
                     sp = [i - 2]
-    print(velikieschitovodi)
     return velikieschitovodi
 
 
@@ -247,15 +248,25 @@ if __name__ == '__main__':
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                if (event.pos[0] > 537) and (event.pos[0] < 697) and (event.pos[1] > 435) and (event.pos[1] < 475):
+                    os.execl(sys.executable, sys.executable, *sys.argv)
         all_sprites.update()
         all_sprites.draw(screen)
         if game_over.rect.x == 0:
             font = pygame.font.Font(None, 30)
             string_rendered = font.render(f'Your points: {count}', 1, pygame.Color(0, 118, 118))
-            intro_rect = string_rendered.get_rect()
-            intro_rect.top = 400
-            intro_rect.x = 550
-            screen.blit(string_rendered, intro_rect)
+            end_rect = string_rendered.get_rect()
+            end_rect.top = 395
+            end_rect.x = 550
+            screen.blit(string_rendered, end_rect)
+            end_text = "Играть снова"
+            string_rendered = font.render(end_text, 1, pygame.Color(0, 118, 118))
+            restart = string_rendered.get_rect()
+            restart.top = 445
+            restart.x = 550
+            pygame.draw.rect(screen, (0, 118, 118), (537, 435, 160, 40), 1)
+            screen.blit(string_rendered, restart)
         pygame.display.flip()
         clock.tick(30)
     pygame.quit()
