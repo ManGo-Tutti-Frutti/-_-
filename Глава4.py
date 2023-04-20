@@ -1,6 +1,7 @@
 import os
 import sys
 import pygame
+from random import choice
 
 WIDTH, HEIGHT = 1200, 500
 
@@ -86,37 +87,76 @@ def generate(map):
     return new_player
 
 
+def obstacles():
+    velikieschitovodi = []
+    for i in range(len(spisochek)):
+        if "@" in spisochek[i]:
+            sp = [i]
+            for j in range(len(spisochek[i])):
+                if spisochek[i][j] == "&":
+                    sp.append(j)
+                    velikieschitovodi.append(sp)
+                    sp = [i]
+            sp = [i - 1]
+            for j in range(len(spisochek[i - 1])):
+                if spisochek[i - 1][j] == "&":
+                    sp.append(j)
+                    velikieschitovodi.append(sp)
+                    sp = [i - 1]
+            sp = [i - 2]
+            for j in range(len(spisochek[i - 2])):
+                if spisochek[i - 2][j] == "&":
+                    sp.append(j)
+                    velikieschitovodi.append(sp)
+                    sp = [i - 2]
+    print(velikieschitovodi)
+    return velikieschitovodi
+
+
 def proverka(velikieschitovodi):
     running = True
     if player.y_up:
         player.jump()
     else:
         player.fall()
-    if velikieschitovodi[0][1] != 0:
-        velikieschitovodi[0][1] -= 1
-        velikieschitovodi[1][1] -= 1
-    else:
-        velikieschitovodi[0][1] = 11
-        velikieschitovodi[1][1] = 11
-    if velikieschitovodi[2][1] != 0:
-        velikieschitovodi[2][1] -= 1
-    else:
-        velikieschitovodi[2][1] = 11
-    if velikieschitovodi[0] == player.cords or velikieschitovodi[1] == player.cords or velikieschitovodi[2] == player.cords:
-        running = False
+    for i in range(len(velikieschitovodi)):
+        if velikieschitovodi[i][1] != 0:
+            velikieschitovodi[i][1] -= 1
+        else:
+            velikieschitovodi[i][1] = 23
+    for j in velikieschitovodi:
+        if j == [player.cords[0], player.cords[1] + 1]:
+            running = False
+            break
     return running
 
 
+def rule():
+    file_path = r'data/rules.txt'
+    os.system("start " + file_path)
+    return False
+
+
 def start_screen():
+    intro_text = "Правила игры"
     fon = pygame.transform.scale(load_image('fon.png'), (1200, 500))
     screen.blit(fon, (0, 0))
+    font = pygame.font.Font(None, 30)
+    string_rendered = font.render(intro_text, 1, pygame.Color(0, 118, 118))
+    intro_rect = string_rendered.get_rect()
+    intro_rect.top = 50
+    intro_rect.x = 1025
+    pygame.draw.rect(screen, (0, 118, 118), (1015, 40, 160, 40), 1)
+    screen.blit(string_rendered, intro_rect)
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 terminate()
-            elif event.type == pygame.KEYDOWN or \
-                    event.type == pygame.MOUSEBUTTONDOWN:
-                return
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                if (event.pos[0] > 1015) and (event.pos[0] < 1175) and (event.pos[1] > 40) and (event.pos[1] < 80):
+                    rule()
+                else:
+                    return
         pygame.display.flip()
         clock.tick(50)
 
@@ -133,6 +173,11 @@ class Game_over(pygame.sprite.Sprite):
         x = self.rect.x
         if x < 0:
             self.rect.x += 15
+
+
+def counted(smg):
+    smg += 1
+    return smg
 
 
 def terminate():
@@ -153,10 +198,16 @@ if __name__ == '__main__':
     all_sprites = pygame.sprite.Group()
     tiles_group = pygame.sprite.Group()
     player_group = pygame.sprite.Group()
-    player = generate(load_level('map.txt'))
+    map_names = ['map.txt', 'map1.txt', 'map2.txt', 'map3.txt']
+    spisochek = load_level(choice(map_names))
+    velikieschitovodi = obstacles()
+    player = generate(spisochek)
+    sound = pygame.mixer.Sound('data\jump.wav')
+    count = 0
+    v = 0
+    k = 100
     start_screen()
     running = True
-    velikieschitovodi = [[3, 9], [4, 9], [4, 10]]
     while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -165,15 +216,27 @@ if __name__ == '__main__':
                 if pygame.key.get_pressed()[pygame.K_SPACE]:
                     if player.cords == player.nachalo:
                         player.y_up = True
+                    sound.play()
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if player.cords == player.nachalo:
                     player.y_up = True
+                    sound.play()
         running = proverka(velikieschitovodi)
         player.update()
         tiles_group.update()
         screen.fill((0, 0, 0))
         tiles_group.draw(screen)
         player_group.draw(screen)
+        count = counted(count)
+        if count // k > v:
+            FPS += 1
+            k *= 2
+        font = pygame.font.Font(None, 30)
+        string_rendered = font.render(f'Your points: {count}', 1, pygame.Color(0, 118, 118))
+        intro_rect = string_rendered.get_rect()
+        intro_rect.top = 50
+        intro_rect.x = 1000
+        screen.blit(string_rendered, intro_rect)
         clock.tick(FPS)
         pygame.display.flip()
     clock = pygame.time.Clock()
@@ -186,6 +249,13 @@ if __name__ == '__main__':
                 running = False
         all_sprites.update()
         all_sprites.draw(screen)
+        if game_over.rect.x == 0:
+            font = pygame.font.Font(None, 30)
+            string_rendered = font.render(f'Your points: {count}', 1, pygame.Color(0, 118, 118))
+            intro_rect = string_rendered.get_rect()
+            intro_rect.top = 400
+            intro_rect.x = 550
+            screen.blit(string_rendered, intro_rect)
         pygame.display.flip()
         clock.tick(30)
     pygame.quit()
