@@ -1,8 +1,6 @@
 import os
 import sys
 import pygame
-import subprocess
-import time
 from random import choice
 
 WIDTH, HEIGHT = 1200, 500
